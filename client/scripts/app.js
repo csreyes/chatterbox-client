@@ -5,7 +5,7 @@ var app = {};
 app.init = function(){
   this.server = 'https://api.parse.com/1/classes/chatterbox';
   this.fetch();
-  setInterval(this.fetch, 1000);
+  setInterval(this.fetch, 500);
 };
 
 app.addMessage = function(message){
@@ -18,6 +18,9 @@ app.addMessage = function(message){
   var text = document.createElement('span');
   $(text).addClass('text');
   text.innerText = addSlashes(message.text);
+  if (app.friends[addSlashes(message.username)]) {
+    $(text).css("font-weight", "Bold");
+  }
   var user = document.createElement('span');
   $(user).addClass('user');
   user.innerText = addSlashes(message.username);
@@ -45,6 +48,8 @@ app.send = function(message){
   });
 };
 
+app.friends = {};
+
 app.fetch = function(){
   $.ajax({
     // always use this url
@@ -54,13 +59,22 @@ app.fetch = function(){
     contentType: 'application/json',
     data: {
       order: '-createdAt',
-      limit: 100,
+      limit: 200,
     },
     success: function (data) {
       var allMessages = data.results;
+      var rooms = [];
+      for(var i = 0; i < allMessages.length; i++) {
+        var message = allMessages[i];
+        rooms.push(message.roomname);
+      }
+      rooms = _.uniq(rooms);
+      app.addRooms(rooms);
+
+
       app.clearMessages();
       for (var i = 0; i < allMessages.length; i++) {
-        if (allMessages[i].username === undefined || allMessages[i].text === undefined) {continue};
+        if (allMessages[i].username === undefined || allMessages[i].text === undefined || allMessages[i].roomname !== app.currentRoom) {continue};
         app.addMessage(allMessages[i]);
       }
     },
@@ -71,6 +85,18 @@ app.fetch = function(){
   });
 };
 
+app.rooms = {};
+
+app.addRooms = function(rooms) {
+  for (var i = 0; i<rooms.length; i++) {
+    if (app.rooms[rooms[i]] || rooms[i] === undefined || rooms[i] === null || rooms[i] === '') {continue;}
+    var room = document.createElement('button');
+    $(room).addClass('room');
+    room.innerText = rooms[i];
+    $('#roomSelect').append(room);
+    app.rooms[rooms[i]] = rooms[i];
+  }
+};
 
 app.clearMessages = function(){
   $('#chats').empty();
@@ -87,19 +113,38 @@ app.addFriend = function(){
 
 app.handleSubmit = function(){
   var username = document.URL.split('=').pop();
-  var text = $('.message').val();
+  var text = $('.messageInput').val();
+  var room = $('.newRoom').val();
+  app.currentRoom = room || app.currentRoom;
   var message = {
     'username': username,
     'text': text,
-    'roomname': '4chan'
+    'roomname': app.currentRoom
   };
   app.send(message);
-  $('.message').val('');
+  app.fetch();
+  $('.messageInput').val('');
 };
 
-$(function() {
+app.currentRoom;
+
+$(document).ready(function() {
+  $('#roomSelect').on('click', 'button', function() {
+    app.currentRoom = this.innerText;
+  });
   $('.submit').on('click',app.handleSubmit);
+  $('#chats').on('click', '.user', function() {
+    if (!app.friends[this.innerText]) {
+      var friend =  document.createElement('div');
+      friend.innerText = this.innerText;
+      $('#friends').append(friend);
+      app.friends[friend.innerText] = friend.innerText;
+    }
+  });
 });
+
+
+
 app.init();
 
 

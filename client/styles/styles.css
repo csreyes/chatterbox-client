@@ -84,6 +84,23 @@ form input[type=text] {
 }
 
 .message {
-    border: 5px solid red;
+    border: 1px solid red;
 }
 
+.text {
+    text-align:right;
+}
+
+.user {
+    text-align:center;
+}
+
+.roomname {
+    text-align:left;
+}
+
+#friends {
+    height: 300px;
+    width: 100px;
+    float: left;
+}
