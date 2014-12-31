@@ -10,7 +10,7 @@ app.init = function(){
 
 app.addMessage = function(message){
   var addSlashes = function ( str ) {
-    return (str + '').replace(/[\\"']/g, '\\$&').replace(/\u0000/g, '\\0');
+    return str;//(str + '').replace(/[\\"']/g, '\\$&').replace(/\u0000/g, '\\0');
   };
   //$('#chats').append('<span>'+message+'</span>');
   var singleMessage = document.createElement('div');
@@ -105,10 +105,6 @@ app.clearMessages = function(){
 
 app.addRoom = function(room){
   $('#roomSelect').append('<span>'+room+'</span>');
-};
-
-app.addFriend = function(){
-
 };
 
 app.handleSubmit = function(){
